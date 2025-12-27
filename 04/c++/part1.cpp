@@ -60,8 +60,6 @@ std::uint64_t countNeighbours(const std::vector<std::string> data,
     }
   }
 
-  std::println("row: {}, col: {}, num: {}", row, column, returnVal);
-
   return returnVal;
 }
 

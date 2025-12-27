@@ -60,21 +60,27 @@ std::uint64_t countNeighbours(const std::vector<std::string> data,
     }
   }
 
-  std::println("row: {}, col: {}, num: {}", row, column, returnVal);
-
   return returnVal;
 }
 
 int main() {
-  const auto& lines = readFileToVector();
+  auto lines = readFileToVector();
 
   std::uint64_t total = 0;
+  bool found = true;
 
-  for (std::int64_t row = 0; row < (std::int64_t) lines.size(); ++row) {
-    for (std::int64_t col = 0; col < (std::int64_t) lines[0].size(); ++col) {
-      if (lines[row][col] == '@') {
-        if (countNeighbours(lines, row, col) < 4) {
-          ++total;
+  while (found) {
+    found = false;
+
+    for (std::int64_t row = 0; row < (std::int64_t) lines.size(); ++row) {
+      for (std::int64_t col = 0; col < (std::int64_t) lines[0].size(); ++col) {
+        if (lines[row][col] == '@') {
+          if (countNeighbours(lines, row, col) < 4) {
+            ++total;
+            lines[row][col] = 'x';
+
+            found = true;
+          }
         }
       }
     }
