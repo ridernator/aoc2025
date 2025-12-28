@@ -122,4 +122,8 @@ int main() {
   }
 
   std::println("Number of timelines = {}", splitters[0]->count);
+
+  for (const auto& splitter : splitters) {
+    delete splitter;
+  }
 }
