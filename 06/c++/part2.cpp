@@ -44,51 +44,52 @@ std::vector<std::string> readFileToVector(const std::string& filename = INPUT) {
   return returnVal;
 }
 
+struct Operand {
+  char operand;
+  std::size_t index;
+};
+
 int main() {
   const auto& lines = readFileToVector();
   std::uint64_t total = 0;
 
-  std::vector<char> operands;
+  std::vector<Operand> operands;
   std::vector<std::vector<std::uint64_t>> nums;
   std::string temp;
 
-  for (const auto& line : lines) {
-    std::stringstream ss(line);
-
-    if (line.find('*') == std::string::npos) {
-      std::uint64_t index = 0;
-
-      while (std::getline(ss, temp, ' ')) {
-        if (temp[0] != 0) {
-          if (nums.size() <= index) {
-            nums.push_back({});
-          }
-
-          nums[index].push_back(std::stoull(temp));
-
-          ++index;
-        }
-      }
-    } else {
-      while (std::getline(ss, temp, ' ')) {
-        if (temp[0] != 0) {
-          operands.push_back(temp[0]);
-        }
-      }
+  for (std::size_t index = 0; index < lines[4].size(); ++index) {
+    if (lines[4][index] != ' ') {
+      operands.push_back({lines[4][index], index});
     }
   }
 
-  for (std::size_t index = 0; index < operands.size(); ++index) {
-    std::println("num1: {}, num2: {}, num3: {}, operand: {}", nums[index][0], nums[index][1], nums[index][2], operands[index]);
-    std::uint64_t sum = nums[index][0];
+  for (const auto& operand : operands) {
+    std::uint64_t sum = 0;
 
-    if (operands[index] == '*') {
-      for (std::size_t index2 = 1; index2 < nums[index].size(); ++index2) {
-        sum *= nums[index][index2];
-      }
-    } else {
-      for (std::size_t index2 = 1; index2 < nums[index].size(); ++index2) {
-        sum += nums[index][index2];
+    for (std::size_t index = operand.index; index < lines[0].size(); ++index) {
+      if ((lines[0][index] != ' ') ||
+          (lines[1][index] != ' ') ||
+          (lines[2][index] != ' ') ||
+          (lines[3][index] != ' ')) {
+        std::string tempString;
+        tempString += lines[0][index];
+        tempString += lines[1][index];
+        tempString += lines[2][index];
+        tempString += lines[3][index];
+
+        std::uint64_t tempNum = std::stoull(tempString);
+
+        if (sum == 0) {
+          sum = tempNum;
+        } else {
+          if (operand.operand == '*') {
+            sum *= tempNum;
+          } else {
+            sum += tempNum;
+          }
+        }
+      } else {
+        break;
       }
     }
 
