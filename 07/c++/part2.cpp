@@ -8,7 +8,7 @@
 #include <fstream>
 #include <vector>
 
-#define INPUT "../data/input"
+#define INPUT "../data/inputSimple"
 
 /**
  * Read a file entirely into a stringstream
@@ -43,62 +43,83 @@ std::vector<std::string> readFileToVector(const std::string& filename = INPUT) {
   return returnVal;
 }
 
-enum class HasPath {
-  TRUE,
-  FALSE,
-  UNKNOWN
-};
-
 struct Splitter {
   std::uint64_t x;
   std::uint64_t y;
-  HasPath hasPath = HasPath::UNKNOWN;
+  std::vector<Splitter*> children = {};
+  std::uint64_t count = 0;
 };
 
+std::uint64_t countLeaves(const Splitter* tree) {
+  std::uint64_t count = 0;
+
+  for (const auto& child : tree->children) {
+    count += countLeaves(child);
+  }
+
+  count += (2 - tree->children.size());
+
+  return count;
+}
+
 int main() {
-  std::vector<Splitter> splitters;
+  std::vector<Splitter*> splitters;
 
   const auto& lines = readFileToVector();
 
   for (std::uint64_t y = 0; y < lines.size(); ++y) {
     for (std::uint64_t x = 0; x < lines[0].size(); ++x) {
       if (lines[y][x] == '^') {
-        splitters.push_back({x, y});
+        splitters.push_back(new Splitter{x, y});
       }
     }
   }
 
-  splitters[0].hasPath = HasPath::TRUE;
+  for (auto iterator = splitters.begin(); iterator != splitters.end(); ++iterator) {
+    bool found = false;
 
-  for (auto iterator = splitters.begin() + 1; iterator != splitters.end(); ++iterator) {
-    auto& splitter = *iterator;
+    for (std::uint64_t y = (*iterator)->y; y < lines.size(); ++y) {
+      for (auto iterator2 = iterator + 1; iterator2 != splitters.end(); ++iterator2) {
+        if (((*iterator2)->y == y) && ((*iterator2)->x == (*iterator)->x - 1)) {
+          (*iterator)->children.push_back(*iterator2);
 
-    for (std::uint64_t y = splitter.y - 1; y != 0; --y) {
-      for (auto iterator2 = splitters.begin(); iterator2 != iterator; ++iterator2) {
-        if (iterator2->y == y) {
-          if (iterator2->x == splitter.x) {
-            splitter.hasPath = HasPath::FALSE;
+          found = true;
 
-            break;
-          } else if ((iterator2->x == splitter.x + 1) || (iterator2->x == splitter.x - 1)) {
-            if (iterator2->hasPath == HasPath::TRUE) {
-              splitter.hasPath = HasPath::TRUE;
-
-              break;
-            }
-          }
+          break;
         }
       }
 
-      if (splitter.hasPath != HasPath::UNKNOWN) {
+      if (found) {
+        break;
+      }
+    }
+
+    found = false;
+
+    for (std::uint64_t y = (*iterator)->y; y < lines.size(); ++y) {
+      for (auto iterator2 = iterator + 1; iterator2 != splitters.end(); ++iterator2) {
+        if (((*iterator2)->y == y) && ((*iterator2)->x == (*iterator)->x + 1)) {
+          (*iterator)->children.push_back(*iterator2);
+
+          found = true;
+
+          break;
+        }
+      }
+
+      if (found) {
         break;
       }
     }
   }
 
-  std::uint64_t splitCount = std::count_if(splitters.begin(), splitters.end(), [] (const auto& splitter) {
-    return splitter.hasPath == HasPath::TRUE;
-  });
+  for (auto iterator = splitters.rbegin(); iterator != splitters.rend(); ++iterator) {
+    (*iterator)->count += (2 - (*iterator)->children.size());
 
-  std::println("Number of times beam is split = {}", splitCount);
+    for (const auto& child : (*iterator)->children) {
+      (*iterator)->count += child->count;
+    }
+  }
+
+  std::println("Number of timelines = {}", splitters[0]->count);
 }
