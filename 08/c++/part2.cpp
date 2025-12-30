@@ -95,7 +95,10 @@ int main() {
     return (a->distance > b->distance);
   });
 
-  for (std::uint64_t index = 0; index < 1000; ++index) {
+  std::int64_t lastX1 = 0;
+  std::int64_t lastX2 = 0;
+
+  while (circuits.size() != 1) {
     Connection* best = connections.back();
 
     for (const auto& circuit : circuits) {
@@ -110,58 +113,43 @@ int main() {
       }
     }
 
+    lastX1 = best->box1->x;
+    lastX2 = best->box2->x;
+
     connections.pop_back();
     delete best;
-  }
 
-  bool simplified = true;
+    bool simplified = true;
 
-  while (simplified) {
-    simplified = false;
+    while (simplified) {
+      simplified = false;
 
-    for (auto iterator = circuits.begin(); iterator != circuits.end(); ++iterator) {
-      for (const auto& box : (*iterator)->boxes) {
-        for (auto iterator2 = iterator + 1; iterator2 != circuits.end(); ++iterator2) {
-          if ((*iterator2)->boxes.find(box) != (*iterator2)->boxes.end()) {
-            for (const auto& box2 : (*iterator2)->boxes) {
-              (*iterator)->boxes.insert(box2);
+      for (auto iterator = circuits.begin(); iterator != circuits.end(); ++iterator) {
+        for (const auto& box : (*iterator)->boxes) {
+          for (auto iterator2 = iterator + 1; iterator2 != circuits.end(); ++iterator2) {
+            if ((*iterator2)->boxes.find(box) != (*iterator2)->boxes.end()) {
+              for (const auto& box2 : (*iterator2)->boxes) {
+                (*iterator)->boxes.insert(box2);
+              }
+
+              delete *iterator2;
+              circuits.erase(iterator2);
+
+              simplified = true;
+
+              break;
             }
-
-            delete *iterator2;
-            circuits.erase(iterator2);
-
-            simplified = true;
-
-            break;
           }
         }
-      }
 
-      if (simplified) {
-        break;
+        if (simplified) {
+          break;
+        }
       }
     }
   }
 
-  std::sort(circuits.begin(), circuits.end(), [] (const auto& a, const auto& b) {
-    return (a->boxes.size() > b->boxes.size());
-  });
-
-  for (const auto& circuit : circuits) {
-    std::println("Circuit:");
-
-    for (const auto& box : circuit->boxes) {
-      std::println("  x: {}, y: {}, z: {}", box->x, box->y, box->z);
-    }
-  }
-
-  std::uint64_t total = circuits[0]->boxes.size();
-
-  for (std::uint64_t index = 1; index < 3; ++index) {
-    total *= circuits[index]->boxes.size();
-  }
-
-  std::println("Three largest circuits total = {}", total);
+  std::println("Distance from wall = {}", (lastX1 * lastX2));
 
   for (const auto& connection : connections) {
     delete connection;

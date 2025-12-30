@@ -147,14 +147,6 @@ int main() {
     return (a->boxes.size() > b->boxes.size());
   });
 
-  for (const auto& circuit : circuits) {
-    std::println("Circuit:");
-
-    for (const auto& box : circuit->boxes) {
-      std::println("  x: {}, y: {}, z: {}", box->x, box->y, box->z);
-    }
-  }
-
   std::uint64_t total = circuits[0]->boxes.size();
 
   for (std::uint64_t index = 1; index < 3; ++index) {
